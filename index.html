@@ -3,44 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>三栏代码编辑器</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box }
-        body { 
-            height: 100vh; 
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden;
-            background: #f0f0f0; /* 主界面灰色背景 */
-        }
-        #main-wrapper { flex: 1; display: flex }
-        .editor-container { height: 100%; width: 50% }
-        #preview { 
-            width: 50%; 
-            height: 100%; 
-            border: none; 
-            background: white; /* 预览窗口白色背景 */
-        }
-        .tabs { 
-            padding: 10px; 
-            background: #000; /* 标签栏黑色背景 */
-            display: flex; 
-            gap: 15px 
-        }
-        .tab { 
-            color: #888; /* 未激活标签灰色文字 */
-            cursor: pointer; 
-            padding: 5px 10px;
-            border-radius: 3px;
-        }
-        .tab.active { 
-            color: #fff; 
-            background: #333; /* 激活标签深灰色背景 */
-        }
-        .gutter { background: #666; cursor: col-resize }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="tabs">
+        <div id="settings-btn" title="自动代码设置">⚙️</div>
         <div class="tab active" data-type="html">HTML</div>
         <div class="tab" data-type="css">CSS</div>
         <div class="tab" data-type="js">JavaScript</div>
@@ -50,79 +17,37 @@
         <div id="container"></div>
     </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.6.5/split.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
-<script>
-
-    
-    let editor, currentType = 'html';
-    const debounceTime = 30;
-    let debounceTimer;
-    
-
-    require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs' }});
-    require(['vs/editor/editor.main'], function() {
-        Split(['#preview', '#container'], {
-            direction: 'horizontal',
-            sizes: [50,50],
-            gutterSize: 8,
-            cursor: 'col-resize'
-        });
-
-        editor = monaco.editor.create(document.getElementById('container'), {
-            value: localStorage.getItem('html') || DEFAULT_CONTENT.html,
-            language: 'html',
-            theme: 'vs-dark', // 编辑器保持黑色主题
-            automaticLayout: true,
-            minimap: { enabled: false },
-            scrollBeyondLastLine: false
-        });
-
-        initTabs();
-        updatePreview();
-        editor.getModel().onDidChangeContent(handleEditorChange);
-    });
-
-    function initTabs() {
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                if (tab.classList.contains('active')) return;
+    <!-- 设置模态框 -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">自动代码设置</div>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="auto-code-tabs">
+                    <div class="auto-code-tab active" data-type="auto-html">HTML</div>
+                    <div class="auto-code-tab" data-type="auto-css">CSS</div>
+                    <div class="auto-code-tab" data-type="auto-js">JavaScript</div>
+                </div>
+                <div id="auto-code-container" class="auto-code-editor"></div>
                 
-                localStorage.setItem(currentType, editor.getValue());
+                <div class="typing-controls">
+                    <label>打字速度 (ms):</label>
+                    <input type="number" id="typing-speed" value="50" min="10" max="500">
+                    <label>开始延迟 (ms):</label>
+                    <input type="number" id="typing-delay" value="1000" min="0" max="5000">
+                </div>
                 
-                currentType = tab.dataset.type;
-                const newContent = localStorage.getItem(currentType) || DEFAULT_CONTENT[currentType];
-                const newModel = monaco.editor.createModel(
-                    newContent,
-                    currentType === 'js' ? 'javascript' : currentType
-                );
-                
-                editor.setModel(newModel);
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-            });
-        });
-    }
+                <button id="execute-btn" class="execute-btn">执行自动代码</button>
+            </div>
+        </div>
+    </div>
 
-    function updatePreview() {
-        const html = `
-            <!DOCTYPE html>
-            <style>${localStorage.getItem('css') || DEFAULT_CONTENT.css}</style>
-            ${localStorage.getItem('html') || DEFAULT_CONTENT.html}
-            <script>try{${localStorage.getItem('js') || DEFAULT_CONTENT.js}}catch(e){console.error(e)}<\/script>
-        `;
-        document.getElementById('preview').srcdoc = html;
-    }
-
-    function handleEditorChange() {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-            localStorage.setItem(currentType, editor.getValue());
-            updatePreview();
-        }, debounceTime);
-    }
-
-    window.addEventListener('resize', () => editor.layout());
-</script>
+    <!-- 外部库依赖 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.6.5/split.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
+    <!-- 主逻辑脚本 -->
+    <script src="script.js"></script>
 </body>
 </html>
