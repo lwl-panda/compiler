@@ -32,7 +32,7 @@ require(['vs/editor/editor.main'], function() {
         automaticLayout: true,
         minimap: { enabled: false },
         scrollBeyondLastLine: false,
-        autoIndent: 'none',
+        autoIndent: true,
         formatOnPaste: false,
         formatOnType: false
     });
